@@ -25,17 +25,14 @@ def print_calendar(year, month)
   print "   " * first_date.wday 
 
   (first_date..last_date).each do |date|
-    if date.saturday?
-      print date.day.to_s.rjust(2) + "\n"
-    else
-      print date.day.to_s.rjust(2) + " "
-    end
+    print date.day.to_s.rjust(2)
+    print date.saturday? ? "\n" : " "
   end
   print "\n" unless last_date.saturday?
 end
 
 def valid_date?(year, month)
-  year.is_a?(Integer) && year > 0 && month.is_a?(Integer) && month.between?(1, 12)
+  year.to_i > 0 && month.to_i.between?(1, 12)
 end
 
 def main
