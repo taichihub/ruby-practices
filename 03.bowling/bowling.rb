@@ -1,6 +1,7 @@
+MAX_PINS = 10
+
 # スコア計算
 def calculate_score(throws)
-  MAX_PINS = 10
   throw_result = throws.split(',').map { |t| t == 'X' ? 10 : t.to_i }
   frame_scores = []
   frame_index = 0
