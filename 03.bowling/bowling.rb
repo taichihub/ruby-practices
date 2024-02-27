@@ -1,21 +1,22 @@
 # スコア計算
 def calculate_score(throws)
-  frames = throws.split(',').map { |t| t == 'X' ? 10 : t.to_i }
+  MAX_PINS = 10
+  throw_result = throws.split(',').map { |t| t == 'X' ? 10 : t.to_i }
   frame_scores = []
   frame_index = 0
 
-  10.times do |frame|
-    if frames[frame_index] == 10 # ストライク
-      score = 10 + frames[frame_index + 1] + frames[frame_index + 2]
+  frame_scores = 10.times.map do
+    if throw_result[frame_index] == MAX_PINS # ストライク
+      score = MAX_PINS + throw_result[frame_index + 1] + throw_result[frame_index + 2]
       frame_index += 1
-    elsif frames[frame_index] + frames[frame_index + 1] == 10 # スペア
-      score = 10 + frames[frame_index + 2]
+    elsif throw_result[frame_index] + throw_result[frame_index + 1] == MAX_PINS # スペア
+      score = MAX_PINS + throw_result[frame_index + 2]
       frame_index += 2
     else
-      score = frames[frame_index] + frames[frame_index + 1]
+      score = throw_result[frame_index] + throw_result[frame_index + 1]
       frame_index += 2
     end
-    frame_scores << score
+    score 
   end
 
   frame_scores.sum
