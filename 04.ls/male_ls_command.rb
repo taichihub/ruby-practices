@@ -14,7 +14,6 @@ class Array
 end
 
 def fetch_entries
-  
   Dir.glob('*')
 end
 
@@ -56,4 +55,4 @@ def main
   print_entries(formatted_entries, max_widths)
 end
 
-main if __FILE__ == $0
+main if __FILE__ == $PROGRAM_NAME
