@@ -1,0 +1,8 @@
+inherit_gem:
+  rubocop-fjord:
+    - "config/rubocop.yml"
+
+AllCops:
+  Exclude:
+    - 'file[0-9].rb'
+    - 'file[0-9][0-9].rb'
