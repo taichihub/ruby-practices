@@ -5,7 +5,7 @@ BLANK_SIZE = 8
 
 def fetch_entries(include_hidden: false)
   pattern = include_hidden ? ['*', '.*'] : '*'
-  Dir.glob(pattern).reject { |entry| entry == '.' || entry == '..' }
+  Dir.glob(pattern).reject { |entry| ['.', '..'].include?(entry) }
 end
 
 def dictionary_sort(files)
@@ -45,7 +45,7 @@ end
 
 def main
   include_hidden = ARGV.include?('-a')
-  entries = fetch_entries(include_hidden: include_hidden)
+  entries = fetch_entries(include_hidden:)
   sorted_entries = dictionary_sort(entries)
   items_per_column = calculate_items_per_column(sorted_entries.size)
   formatted_entries = slice_entries_for_display(sorted_entries, items_per_column)
