@@ -45,7 +45,7 @@ end
 
 def main
   include_hidden = ARGV.include?('-a')
-  entries = fetch_entries(include_hidden: include_hidden)
+  entries = fetch_entries(include_hidden:)
   reverse_order = ARGV.include?('-r')
   sorted_entries = dictionary_sort(entries)
   sorted_entries.reverse! if reverse_order
