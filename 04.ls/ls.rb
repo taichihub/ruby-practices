@@ -52,7 +52,7 @@ def file_details(entry)
           when 'file' then '-'
           else '?'
           end
-  permissions = sprintf("%o", stat.mode)[-3, 3].chars.map { |ch| ch.to_i.to_s(2).rjust(3, '0') }.join.gsub('1', 'r').gsub('0', '-')
+  permissions = format('%o', stat.mode)[-3, 3].chars.map { |ch| ch.to_i.to_s(2).rjust(3, '0') }.join.tr('1', 'r').tr('0', '-')
   nlink = stat.nlink
   owner = Etc.getpwuid(stat.uid).name
   group = Etc.getgrgid(stat.gid).name
@@ -70,7 +70,6 @@ def main
   entries = fetch_entries(include_hidden:)
   reverse_order = ARGV.include?('-r')
   long_list = ARGV.include?('-l')
-  
   sorted_entries = dictionary_sort(entries)
   sorted_entries.reverse! if reverse_order
 
