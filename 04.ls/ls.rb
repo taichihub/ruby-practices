@@ -45,7 +45,7 @@ def print_entries(formatted_entries, max_widths)
   end
 end
 
-def file_details(entry)
+def get_file_details(entry)
   stat = File.stat(entry)
   ftype = case stat.ftype
           when 'directory' then 'd'
@@ -61,20 +61,20 @@ def file_details(entry)
   "#{ftype}#{permissions} #{nlink} #{owner} #{group} #{size} #{mtime} #{entry}"
 end
 
-def long_listing(entries)
-  entries.map { |entry| file_details(entry) }
+def get_file_detail(entries)
+  entries.map { |entry| get_file_details(entry) }
 end
 
 def main
   include_hidden = ARGV.include?('-a')
   entries = fetch_entries(include_hidden:)
   reverse_order = ARGV.include?('-r')
-  long_list = ARGV.include?('-l')
+  detail_order = ARGV.include?('-l')
   sorted_entries = dictionary_sort(entries)
   sorted_entries.reverse! if reverse_order
 
-  if long_list
-    detailed_entries = long_listing(sorted_entries)
+  if detail_order
+    detailed_entries = get_file_detail(sorted_entries)
     puts detailed_entries
   else
     items_per_column = calculate_items_per_column(sorted_entries.size)
