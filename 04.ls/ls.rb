@@ -45,7 +45,7 @@ def print_entries(formatted_entries, max_widths)
   end
 end
 
-def get_file_details(entry)
+def output_file_details(entry)
   stat = File.stat(entry)
   ftype = case stat.ftype
           when 'directory' then 'd'
@@ -62,7 +62,7 @@ def get_file_details(entry)
 end
 
 def get_file_detail(entries)
-  entries.map { |entry| get_file_details(entry) }
+  entries.map { |entry| output_file_details(entry) }
 end
 
 def main
