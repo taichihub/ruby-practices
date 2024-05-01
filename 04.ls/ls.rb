@@ -45,7 +45,7 @@ def print_entries(formatted_entries, max_widths)
   end
 end
 
-def output_file_details(entry)
+def format_file_metadata_as_string(entry)
   stat = File.stat(entry)
   ftype = case stat.ftype
           when 'directory' then 'd'
@@ -62,18 +62,18 @@ def output_file_details(entry)
 end
 
 def get_file_detail(entries)
-  entries.map { |entry| output_file_details(entry) }
+  entries.map { |entry| format_file_metadata_as_string(entry) }
 end
 
 def main
   include_hidden = ARGV.include?('-a')
   entries = fetch_entries(include_hidden:)
   reverse_order = ARGV.include?('-r')
-  detail_order = ARGV.include?('-l')
+  display_detailed_file_information = ARGV.include?('-l')
   sorted_entries = dictionary_sort(entries)
   sorted_entries.reverse! if reverse_order
 
-  if detail_order
+  if display_detailed_file_information
     detailed_entries = get_file_detail(sorted_entries)
     puts detailed_entries
   else
