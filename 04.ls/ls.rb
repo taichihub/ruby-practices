@@ -45,7 +45,7 @@ def print_entries(formatted_entries, max_widths)
   end
 end
 
-def format_files_detail(entry)
+def format_file_detail(entry)
   stat = File.stat(entry)
   ftype = case stat.ftype
           when 'directory' then 'd'
@@ -61,8 +61,8 @@ def format_files_detail(entry)
   "#{ftype}#{permissions} #{nlink} #{owner} #{group} #{size} #{mtime} #{entry}"
 end
 
-def format_file_detail(entries)
-  entries.map { |entry| format_files_detail(entry) }
+def format_file_details(entries)
+  entries.map { |entry| format_file_detail(entry) }
 end
 
 def main
@@ -74,7 +74,7 @@ def main
   sorted_entries.reverse! if reverse_order
 
   if display_detailed_file_information
-    formatted_entries = get_file_detail(sorted_entries)
+    formatted_entries = format_file_details(sorted_entries)
     puts formatted_entries
   else
     items_per_column = calculate_items_per_column(sorted_entries.size)
