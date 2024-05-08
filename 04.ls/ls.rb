@@ -5,13 +5,38 @@ require 'etc'
 COLUMNS = 3
 BLANK_SIZE = 8
 
+def parse_options(args)
+  options = {
+    include_hidden: false,
+    reverse_order: false,
+    detailed_info: false
+  }
+  args.each do |arg|
+    next unless arg.start_with?('-')
+    arg[1..-1].chars.each do |option|
+      case option
+      when 'a'
+        options[:include_hidden] = true
+      when 'r'
+        options[:reverse_order] = true
+      when 'l'
+        options[:detailed_info] = true
+      else
+        raise ArgumentError, "無効なオプション: #{option}"
+      end
+    end
+  end
+  options
+end
+
 def fetch_entries(include_hidden: false)
   pattern = include_hidden ? ['*', '.*'] : '*'
   Dir.glob(pattern).reject { |entry| ['.', '..'].include?(entry) }
 end
 
-def dictionary_sort(files)
-  files.sort
+def dictionary_sort(files, reverse_order: false)
+  sorted_files = files.sort
+  reverse_order ? sorted_files.reverse : sorted_files
 end
 
 def calculate_items_per_column(items)
@@ -66,14 +91,11 @@ def format_file_details(entries)
 end
 
 def main
-  include_hidden = ARGV.include?('-a')
-  entries = fetch_entries(include_hidden:)
-  reverse_order = ARGV.include?('-r')
-  display_detailed_file_information = ARGV.include?('-l')
-  sorted_entries = dictionary_sort(entries)
-  sorted_entries.reverse! if reverse_order
+  options = parse_options(ARGV)
+  entries = fetch_entries(include_hidden: options[:include_hidden])
+  sorted_entries = dictionary_sort(entries, reverse_order: options[:reverse_order])
 
-  if display_detailed_file_information
+  if options[:detailed_info]
     formatted_entries = format_file_details(sorted_entries)
     puts formatted_entries
   else
