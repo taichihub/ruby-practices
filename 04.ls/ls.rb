@@ -13,7 +13,8 @@ def parse_options(args)
   }
   args.each do |arg|
     next unless arg.start_with?('-')
-    arg[1..-1].chars.each do |option|
+
+    arg[1..].chars.each do |option|
       case option
       when 'a'
         options[:include_hidden] = true
@@ -21,8 +22,6 @@ def parse_options(args)
         options[:reverse_order] = true
       when 'l'
         options[:detailed_info] = true
-      else
-        raise ArgumentError, "無効なオプション: #{option}"
       end
     end
   end
