@@ -9,7 +9,7 @@ def parse_options(args)
   options = {
     include_hidden: false,
     reverse_order: false,
-    detailed_info: false
+    display_detailed_file_information: false
   }
   args.each do |arg|
     next unless arg.start_with?('-')
@@ -21,7 +21,7 @@ def parse_options(args)
       when 'r'
         options[:reverse_order] = true
       when 'l'
-        options[:detailed_info] = true
+        options[:display_detailed_file_information] = true
       end
     end
   end
@@ -94,7 +94,7 @@ def main
   entries = fetch_entries(include_hidden: options[:include_hidden])
   sorted_entries = dictionary_sort(entries, reverse_order: options[:reverse_order])
 
-  if options[:detailed_info]
+  if options[:display_detailed_file_information]
     formatted_entries = format_file_details(sorted_entries)
     puts formatted_entries
   else
