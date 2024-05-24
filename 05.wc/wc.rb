@@ -1,45 +1,58 @@
-# frozen_string_literal: true
+#!/usr/bin/env ruby
 
-def count_data(input)
-  lines = input.split("\n")
-  words = input.split
-  bytes = input.bytesize
-  [lines.count, words.count, bytes]
+require 'optparse'
+
+# 行数をカウントする関数
+def count_lines(content)
+  content.lines.count
 end
 
-def print_counts(counts, label = nil)
-  label_part = label ? " #{label}" : ''
-  puts "#{counts[0].to_s.rjust(8)} #{counts[1].to_s.rjust(8)} #{counts[2].to_s.rjust(8)}#{label_part}"
+# 単語数をカウントする関数（1文字=1単語）
+def count_words(content)
+  content.each_char.reject { |char| char =~ /\s/ }.count
 end
 
-args = ARGV.dup
+# バイト数をカウントする関数
+def count_bytes(content)
+  content.bytesize
+end
 
-options = {
-  lines: args.any? { |arg| ['-l', '-lwc', '-lc', '-lw'].include?(arg) },
-  words: args.any? { |arg| ['-w', '-lwc', '-wc', '-lw'].include?(arg) },
-  bytes: args.any? { |arg| ['-c', '-lwc', '-wc', '-lc'].include?(arg) }
-}
+# オプションの解析
+options = { lines: false, words: false, bytes: false }
+OptionParser.new do |opts|
+  opts.banner = "Usage: wc.rb [options] [file]"
 
-options = { lines: true, words: true, bytes: true } if options.values.none?
-
-args.reject! { |arg| arg.start_with?('-') }
-
-total_counts = [0, 0, 0]
-
-if args.empty?
-  input = $stdin.read
-  counts = count_data(input)
-  print_counts(counts) if input.length.positive?
-else
-  args.each do |filename|
-    if File.exist?(filename)
-      input = File.read(filename)
-      counts = count_data(input)
-      print_counts(counts, filename)
-      total_counts = total_counts.zip(counts).map(&:sum)
-    else
-      puts "wc: #{filename}: ファイルが見つかりません"
-    end
+  opts.on("-l", "Count lines") do |l|
+    options[:lines] = true
   end
-  print_counts(total_counts, '合計') if args.length > 1
+
+  opts.on("-w", "Count words") do |w|
+    options[:words] = true
+  end
+
+  opts.on("-c", "Count bytes") do |c|
+    options[:bytes] = true
+  end
+end.parse!
+
+# オプションが指定されていない場合、すべてのオプションを有効にする
+if !options[:lines] && !options[:words] && !options[:bytes]
+  options[:lines] = options[:words] = options[:bytes] = true
 end
+
+# ファイルを読み込み
+file_content = ARGF.read
+
+# カウント機能の実行
+line_count = count_lines(file_content)
+word_count = count_words(file_content)
+byte_count = count_bytes(file_content)
+
+# オプションによる出力制御
+output = []
+output << line_count if options[:lines]
+output << word_count if options[:words]
+output << byte_count if options[:bytes]
+
+# 出力をスペース区切りで表示
+puts output.join(" ")
