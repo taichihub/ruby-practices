@@ -2,51 +2,79 @@
 
 require 'optparse'
 
-# 行数をカウントする関数
+def parse_options
+  options = { lines: false, words: false, bytes: false }
+  OptionParser.new do |opts|
+    opts.banner = 'Usage: wc.rb [options] [file ...]'
+    opts.on('-l', 'Count lines') { options[:lines] = true }
+    opts.on('-w', 'Count words') { options[:words] = true }
+    opts.on('-c', 'Count bytes') { options[:bytes] = true }
+  end.parse!
+  options.transform_values! { |_| true } unless options.values.any?
+  options
+end
+
 def count_lines(content)
-  return 0 if content.empty?
-
-  lines = content.count("\n")
-  lines += 1 unless content.end_with?("\n") # 最後に改行がなければ1行追加
-  lines
+  content.count("\n")
 end
 
-# 単語数をカウントする関数
 def count_words(content)
-  words = content.split(/\s+/).reject(&:empty?)
-  words.count
+  content.split(/\s+/).reject(&:empty?).count
 end
 
-# バイト数をカウントする関数
 def count_bytes(content)
   content.bytesize
 end
 
-# オプションの解析
-options = { lines: false, words: false, bytes: false }
-OptionParser.new do |opts|
-  opts.banner = 'Usage: wc.rb [options]'
-  opts.on('-l', 'Count lines') { options[:lines] = true }
-  opts.on('-w', 'Count words') { options[:words] = true }
-  opts.on('-c', 'Count bytes') { options[:bytes] = true }
-end.parse!
+def output_results(content, options, filename = nil)
+  line_count = count_lines(content)
+  word_count = count_words(content)
+  byte_count = count_bytes(content)
 
-# オプションが指定されていない場合、すべてのオプションを有効にする
-options[:lines] = options[:words] = options[:bytes] = true unless options.values.any?
+  output = []
+  output << format('%8d', line_count) if options[:lines]
+  output << format('%8d', word_count) if options[:words]
+  output << format('%8d', byte_count) if options[:bytes]
+  output << " #{filename}" if filename
 
-# 標準入力またはファイルからのデータを読み込み
-file_content = ARGF.read
+  puts output.join(' ')
 
-# カウント機能の実行
-line_count = count_lines(file_content) if options[:lines]
-word_count = count_words(file_content) if options[:words]
-byte_count = count_bytes(file_content) if options[:bytes]
+  [line_count, word_count, byte_count]
+end
 
-# オプションによる出力制御
-output = []
-output << format('%8d', line_count) if options[:lines]
-output << format('%8d', word_count) if options[:words]
-output << format('%8d', byte_count) if options[:bytes]
+def process_files(files, options)
+  total_counts = files.map { |file| process_single_file(file, options) }
 
-# 出力をスペース区切りで表示
-puts output.join(' ')
+  return unless files.size > 1
+
+  total_lines, total_words, total_bytes = total_counts.transpose.map(&:sum)
+  output_total(total_lines, total_words, total_bytes, options)
+end
+
+def process_single_file(file, options)
+  file_content = File.read(file)
+  output_results(file_content, options, file)
+end
+
+def output_total(total_lines, total_words, total_bytes, options)
+  output = []
+  output << format('%8d', total_lines) if options[:lines]
+  output << format('%8d', total_words) if options[:words]
+  output << format('%8d', total_bytes) if options[:bytes]
+  output << ' total'
+
+  puts output.join(' ')
+end
+
+def main
+  options = parse_options
+
+  if ARGV.empty?
+    file_content = $stdin.read
+    output_results(file_content, options)
+  else
+    process_files(ARGV, options)
+  end
+end
+
+main
