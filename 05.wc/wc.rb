@@ -26,44 +26,39 @@ def count_bytes(content)
   content.bytesize
 end
 
-def output_results(content, options, filename = nil)
-  line_count = count_lines(content)
-  word_count = count_words(content)
-  byte_count = count_bytes(content)
-
+def output_results(counts, options, filename = nil, total = false)
   output = []
-  output << format('%8d', line_count) if options[:lines]
-  output << format('%8d', word_count) if options[:words]
-  output << format('%8d', byte_count) if options[:bytes]
+  output << format('%8d', counts[:lines]) if options[:lines]
+  output << format('%8d', counts[:words]) if options[:words]
+  output << format('%8d', counts[:bytes]) if options[:bytes]
   output << " #{filename}" if filename
+  output << ' total' if total
 
   puts output.join(' ')
-
-  [line_count, word_count, byte_count]
 end
 
-def process_files(files, options)
+def handle_multiple_files(files, options)
   total_counts = files.map { |file| process_single_file(file, options) }
 
   return unless files.size > 1
 
-  total_lines, total_words, total_bytes = total_counts.transpose.map(&:sum)
-  output_total(total_lines, total_words, total_bytes, options)
+  total_lines, total_words, total_bytes = total_counts.map(&:values).transpose.map(&:sum)
+  output_results({ lines: total_lines, words: total_words, bytes: total_bytes }, options, 'total', true)
 end
 
 def process_single_file(file, options)
   file_content = File.read(file)
-  output_results(file_content, options, file)
+  counts = count_all(file_content)
+  output_results(counts, options, file)
+  counts
 end
 
-def output_total(total_lines, total_words, total_bytes, options)
-  output = []
-  output << format('%8d', total_lines) if options[:lines]
-  output << format('%8d', total_words) if options[:words]
-  output << format('%8d', total_bytes) if options[:bytes]
-  output << ' total'
-
-  puts output.join(' ')
+def count_all(content)
+  {
+    lines: count_lines(content),
+    words: count_words(content),
+    bytes: count_bytes(content)
+  }
 end
 
 def main
@@ -71,9 +66,10 @@ def main
 
   if ARGV.empty?
     file_content = $stdin.read
-    output_results(file_content, options)
+    counts = count_all(file_content)
+    output_results(counts, options)
   else
-    process_files(ARGV, options)
+    handle_multiple_files(ARGV, options)
   end
 end
 
