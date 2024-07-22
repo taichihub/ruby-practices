@@ -32,7 +32,7 @@ def output_results(counts, options, filename = nil, total: false)
   output << format('%8d', counts[:words]) if options[:words]
   output << format('%8d', counts[:bytes]) if options[:bytes]
   output << " #{filename}" if filename
-  output << ' total' if total
+  output << ' total' if total && filename.nil?
 
   puts output.join(' ')
 end
@@ -43,7 +43,7 @@ def handle_multiple_files(files, options)
   return unless files.size > 1
 
   total_lines, total_words, total_bytes = total_counts.map(&:values).transpose.map(&:sum)
-  output_results({ lines: total_lines, words: total_words, bytes: total_bytes }, options, 'total', total: true)
+  output_results({ lines: total_lines, words: total_words, bytes: total_bytes }, options, nil, total: true)
 end
 
 def process_single_file(file, options)
