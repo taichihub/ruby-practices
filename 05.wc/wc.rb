@@ -10,8 +10,7 @@ def parse_options
     opts.on('-w', 'Count words') { options[:words] = true }
     opts.on('-c', 'Count bytes') { options[:bytes] = true }
   end.parse!
-  options.transform_values! { |_| true } unless options.values.any?
-  options
+  options.values.any? ? options : options.transform_values { true }
 end
 
 def count_lines(content)
@@ -31,9 +30,7 @@ def output_results(counts, options, filename = nil, total: false)
   output << format('%8d', counts[:lines]) if options[:lines]
   output << format('%8d', counts[:words]) if options[:words]
   output << format('%8d', counts[:bytes]) if options[:bytes]
-  output << " #{filename}" if filename
-  output << ' total' if total && filename.nil?
-
+  output << counts[:filename]
   puts output.join(' ')
 end
 
@@ -43,10 +40,11 @@ def handle_multiple_files(files, options)
   return unless files.size > 1
 
   total_lines, total_words, total_bytes = total_counts.map(&:values).transpose.map(&:sum)
-  output_results({ lines: total_lines, words: total_words, bytes: total_bytes }, options, nil, total: true)
+  total_counts_summary = { lines: total_lines, words: total_words, bytes: total_bytes }
+  output_results(total_counts_summary, options, total: true)
 end
 
-def process_single_file(file, options)
+def read_and_count_file_contents(file, options)
   file_content = File.read(file)
   counts = count_all(file_content)
   output_results(counts, options, file)
