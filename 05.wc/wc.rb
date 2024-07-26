@@ -25,23 +25,25 @@ def count_bytes(content)
   content.bytesize
 end
 
-def output_results(counts, options, filename = nil, total: false)
+def output_results(counts, options, filename = nil)
   output = []
   output << format('%8d', counts[:lines]) if options[:lines]
   output << format('%8d', counts[:words]) if options[:words]
   output << format('%8d', counts[:bytes]) if options[:bytes]
-  output << counts[:filename]
+  output << filename unless filename.nil?
   puts output.join(' ')
 end
 
 def handle_multiple_files(files, options)
-  total_counts = files.map { |file| process_single_file(file, options) }
-
+  total_counts = files.map { |file| read_and_count_file_contents(file, options) }
   return unless files.size > 1
 
-  total_lines, total_words, total_bytes = total_counts.map(&:values).transpose.map(&:sum)
+  total_lines, total_words, total_bytes = total_counts.map do |counts|
+    [counts[:lines], counts[:words], counts[:bytes]]
+  end.transpose.map(&:sum)
+
   total_counts_summary = { lines: total_lines, words: total_words, bytes: total_bytes }
-  output_results(total_counts_summary, options, total: true)
+  output_results(total_counts_summary, options, 'total')
 end
 
 def read_and_count_file_contents(file, options)
