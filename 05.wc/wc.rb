@@ -2,6 +2,16 @@
 
 require 'optparse'
 
+def main
+  options = parse_options
+
+  if ARGV.empty?
+    handle_stdin(options)
+  else
+    handle_files(ARGV, options)
+  end
+end
+
 def parse_options
   options = { lines: false, words: false, bytes: false }
   OptionParser.new do |opts|
@@ -11,6 +21,56 @@ def parse_options
     opts.on('-c', 'Count bytes') { options[:bytes] = true }
   end.parse!
   options.values.any? ? options : options.transform_values { true }
+end
+
+def handle_stdin(options)
+  file_content = $stdin.read
+  counts = count_all(file_content)
+  max_widths = calculate_max_widths([counts])
+  output_results(counts, options, nil, max_widths)
+end
+
+def handle_files(files, options)
+  file_counts = files.map { |file| count_file_contents(file) }
+  max_widths = calculate_max_widths(file_counts.map(&:first))
+
+  file_counts.each do |counts, filename|
+    output_results(counts, options, filename, max_widths)
+  end
+
+  return unless files.size > 1
+
+  total_counts = calculate_totals(file_counts.map(&:first))
+  output_results(total_counts, options, 'total', max_widths)
+end
+
+def count_file_contents(file)
+  file_content = File.read(file)
+  counts = count_all(file_content)
+  [counts, file]
+end
+
+def calculate_totals(file_counts)
+  {
+    lines: file_counts.sum { |counts| counts[:lines] },
+    words: file_counts.sum { |counts| counts[:words] },
+    bytes: file_counts.sum { |counts| counts[:bytes] }
+  }
+end
+
+def calculate_max_widths(counts_list)
+  max_lines = counts_list.map { |counts| counts[:lines].to_s.size }.max
+  max_words = counts_list.map { |counts| counts[:words].to_s.size }.max
+  max_bytes = counts_list.map { |counts| counts[:bytes].to_s.size }.max
+  [max_lines, max_words, max_bytes].map { |w| [w, 6].max }
+end
+
+def count_all(content)
+  {
+    lines: count_lines(content),
+    words: count_words(content),
+    bytes: count_bytes(content)
+  }
 end
 
 def count_lines(content)
@@ -25,52 +85,17 @@ def count_bytes(content)
   content.bytesize
 end
 
-def output_results(counts, options, filename = nil)
+def output_results(counts, options, filename = nil, max_widths = [6, 6, 6])
   output = []
-  output << format('%8d', counts[:lines]) if options[:lines]
-  output << format('%8d', counts[:words]) if options[:words]
-  output << format('%8d', counts[:bytes]) if options[:bytes]
+  output << format(" %#{max_widths[0]}d", counts[:lines]) if options[:lines] || !any_option_selected?(options)
+  output << format(" %#{max_widths[1]}d", counts[:words]) if options[:words] || !any_option_selected?(options)
+  output << format(" %#{max_widths[2]}d", counts[:bytes]) if options[:bytes] || !any_option_selected?(options)
   output << filename unless filename.nil?
   puts output.join(' ')
 end
 
-def handle_multiple_files(files, options)
-  total_counts = files.map { |file| read_and_count_file_contents(file, options) }
-  return unless files.size > 1
-
-  total_lines, total_words, total_bytes = total_counts.map do |counts|
-    [counts[:lines], counts[:words], counts[:bytes]]
-  end.transpose.map(&:sum)
-
-  total_counts_summary = { lines: total_lines, words: total_words, bytes: total_bytes }
-  output_results(total_counts_summary, options, 'total')
-end
-
-def read_and_count_file_contents(file, options)
-  file_content = File.read(file)
-  counts = count_all(file_content)
-  output_results(counts, options, file)
-  counts
-end
-
-def count_all(content)
-  {
-    lines: count_lines(content),
-    words: count_words(content),
-    bytes: count_bytes(content)
-  }
-end
-
-def main
-  options = parse_options
-
-  if ARGV.empty?
-    file_content = $stdin.read
-    counts = count_all(file_content)
-    output_results(counts, options)
-  else
-    handle_multiple_files(ARGV, options)
-  end
+def any_option_selected?(options)
+  options[:lines] || options[:words] || options[:bytes]
 end
 
 main
