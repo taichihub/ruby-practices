@@ -64,19 +64,19 @@ def count_all(content)
   }
 end
 
-def output_count_values(counts, options)
+def output_count_values(file_info, options)
   outputs = []
   no_options = options.values.none?
   %i[lines words bytes].each do |key|
-    outputs << format_count(counts[:counts][key]) if options[key] || no_options
+    outputs << format_count(file_info[:counts][key]) if options[key] || no_options
   end
   outputs
 end
 
-def output_results(counts, options)
-  outputs = output_count_values(counts, options)
+def output_results(file_info, options)
+  outputs = output_count_values(file_info, options)
   formatted_output = outputs.join('')
-  filename_output = counts[:filename] ? " #{counts[:filename]}" : ''
+  filename_output = file_info[:filename] ? " #{file_info[:filename]}" : ''
   puts formatted_output + filename_output
 end
 
