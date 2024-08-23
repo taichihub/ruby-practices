@@ -25,68 +25,63 @@ end
 def handle_stdin(options)
   file_content = $stdin.read
   counts = count_all(file_content)
-  output_results(counts, options)
+  output_counts_hash = { counts: counts }
+  output_results(output_counts_hash, options)
 end
 
 def handle_files(files, options)
   file_counts = files.map { |file| count_file_contents(file) }
-  file_counts.each { |file_data| output_results(file_data[:counts], options, file_data[:filename]) }
+  file_counts.each { |file_data| output_results(file_data, options) }
   output_total(file_counts, options) if files.size > 1
 end
 
 def output_total(file_counts, options)
-  total_counts = calculate_totals(file_counts.map { |data| data[:counts] })
-  output_results(total_counts, options, 'total')
+  total_counts = calculate_totals(file_counts)
+  output_content_hash = { counts: total_counts, filename: 'total' }
+  output_results(output_content_hash, options)
 end
 
 def count_file_contents(file)
   file_content = File.read(file)
-  { counts: count_all(file_content), filename: file }
+  counts = count_all(file_content)
+  { counts: counts, filename: file }
 end
 
-def calculate_totals(file_counts)
+def calculate_totals(file_data)
+  counts = file_data.map { |data| data[:counts] }
   {
-    lines: file_counts.sum { |counts| counts[:lines] },
-    words: file_counts.sum { |counts| counts[:words] },
-    bytes: file_counts.sum { |counts| counts[:bytes] }
+    lines: counts.sum { |count| count[:lines] },
+    words: counts.sum { |count| count[:words] },
+    bytes: counts.sum { |count| count[:bytes] }
   }
 end
 
 def count_all(content)
-  lines = content.count("\n")
-  words = content.split(/\s+/).reject(&:empty?).count
-  bytes = content.bytesize
-  { lines: lines, words: words, bytes: bytes }
+  {
+    lines: content.count("\n"),
+    words: content.split(/\s+/).reject(&:empty?).count,
+    bytes: content.bytesize
+  }
 end
 
-def output_results(counts, options, filename = nil)
-  outputs = [format_line_count(counts, options), format_word_count(counts, options), format_byte_count(counts, options)]
-  formatted_output = outputs.compact.join('')
-  puts formatted_output + format_filename(filename)
+def output_count_values(counts, options)
+  outputs = []
+  no_options = options.values.none?
+  %i[lines words bytes].each do |key|
+    outputs << format_count(counts[:counts][key]) if options[key] || no_options
+  end
+  outputs
 end
 
-def format_line_count(counts, options)
-  format_count(counts[:lines], 8) if options[:lines] || no_option_selected?(options)
+def output_results(counts, options)
+  outputs = output_count_values(counts, options)
+  formatted_output = outputs.join('')
+  filename_output = counts[:filename] ? " #{counts[:filename]}" : ''
+  puts formatted_output + filename_output
 end
 
-def format_word_count(counts, options)
-  format_count(counts[:words], 8) if options[:words] || no_option_selected?(options)
-end
-
-def format_byte_count(counts, options)
-  format_count(counts[:bytes], 8) if options[:bytes] || no_option_selected?(options)
-end
-
-def format_count(count, width)
-  count.to_s.rjust(width)
-end
-
-def format_filename(filename)
-  filename ? " #{filename}" : ''
-end
-
-def no_option_selected?(options)
-  !options[:lines] && !options[:words] && !options[:bytes]
+def format_count(count)
+  count.to_s.rjust(8)
 end
 
 main
