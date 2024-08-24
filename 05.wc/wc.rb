@@ -24,8 +24,7 @@ end
 
 def handle_stdin(options)
   file_content = $stdin.read
-  counts = count_all(file_content)
-  output_counts_hash = { counts: counts }
+  output_counts_hash = { counts: count_all(file_content) }
   output_results(output_counts_hash, options)
 end
 
@@ -43,17 +42,17 @@ end
 
 def count_file_contents(file)
   file_content = File.read(file)
-  counts = count_all(file_content)
-  { counts: counts, filename: file }
+  { counts: count_all(file_content), filename: file }
 end
 
-def calculate_totals(file_data)
-  counts = file_data.map { |data| data[:counts] }
-  {
-    lines: counts.sum { |count| count[:lines] },
-    words: counts.sum { |count| count[:words] },
-    bytes: counts.sum { |count| count[:bytes] }
-  }
+def calculate_totals(file_counts)
+  total_counts = { lines: 0, words: 0, bytes: 0 }
+  file_counts.each do |data|
+    total_counts[:lines] += data[:counts][:lines]
+    total_counts[:words] += data[:counts][:words]
+    total_counts[:bytes] += data[:counts][:bytes]
+  end
+  total_counts
 end
 
 def count_all(content)
@@ -64,24 +63,16 @@ def count_all(content)
   }
 end
 
-def output_count_values(file_info, options)
-  outputs = []
-  no_options = options.values.none?
-  %i[lines words bytes].each do |key|
-    outputs << format_count(file_info[:counts][key]) if options[key] || no_options
+def construct_output_count_values(file_info, options)
+  file_info[:counts].keys.filter_map do |key|
+    options[key] || options.values.none? ? file_info[:counts][key].to_s.rjust(8) : nil
   end
-  outputs
 end
 
 def output_results(file_info, options)
-  outputs = output_count_values(file_info, options)
-  formatted_output = outputs.join('')
-  filename_output = file_info[:filename] ? " #{file_info[:filename]}" : ''
-  puts formatted_output + filename_output
-end
-
-def format_count(count)
-  count.to_s.rjust(8)
+  outputs = construct_output_count_values(file_info, options)
+  outputs << " #{file_info[:filename]}" if file_info[:filename]
+  puts outputs.join
 end
 
 main
