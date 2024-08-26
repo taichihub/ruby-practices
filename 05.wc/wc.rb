@@ -23,31 +23,29 @@ def parse_options
 end
 
 def handle_stdin(options)
-  file_content = $stdin.read
-  output_counts_hash = { counts: count_all(file_content) }
-  output_results(output_counts_hash, options)
+  content = $stdin.read
+  file_info = { counts: count_all(content) }
+  output_results(file_info, options)
 end
 
 def handle_files(files, options)
-  file_counts = files.map { |file| count_file_contents(file) }
-  file_counts.each { |file_data| output_results(file_data, options) }
-  output_total(file_counts, options) if files.size > 1
+  counts = files.map do |file|
+    content = File.read(file)
+    { counts: count_all(content), filename: file }
+  end
+  counts.each { |file_info| output_results(file_info, options) }
+  output_total(counts, options) if files.size > 1
 end
 
-def output_total(file_counts, options)
-  total_counts = calculate_totals(file_counts)
-  output_content_hash = { counts: total_counts, filename: 'total' }
-  output_results(output_content_hash, options)
+def output_total(counts, options)
+  total_counts = calculate_totals(counts)
+  file_info = { counts: total_counts, filename: 'total' }
+  output_results(file_info, options)
 end
 
-def count_file_contents(file)
-  file_content = File.read(file)
-  { counts: count_all(file_content), filename: file }
-end
-
-def calculate_totals(file_counts)
+def calculate_totals(counts)
   total_counts = { lines: 0, words: 0, bytes: 0 }
-  file_counts.each do |data|
+  counts.each do |data|
     total_counts[:lines] += data[:counts][:lines]
     total_counts[:words] += data[:counts][:words]
     total_counts[:bytes] += data[:counts][:bytes]
@@ -63,14 +61,10 @@ def count_all(content)
   }
 end
 
-def construct_output_count_values(file_info, options)
-  file_info[:counts].keys.filter_map do |key|
-    options[key] || options.values.none? ? file_info[:counts][key].to_s.rjust(8) : nil
-  end
-end
-
 def output_results(file_info, options)
-  outputs = construct_output_count_values(file_info, options)
+  outputs = file_info[:counts].keys.filter_map do |key|
+    file_info[:counts][key].to_s.rjust(8) if options[key] || options.values.none?
+  end
   outputs << " #{file_info[:filename]}" if file_info[:filename]
   puts outputs.join
 end
