@@ -29,11 +29,11 @@ def handle_stdin(options)
 end
 
 def handle_files(files, options)
-  counts = files.map do |file|
+  file_info_list = files.map do |file|
     content = File.read(file)
     { counts: count_all(content), filename: file }
   end
-  counts.each { |file_info| output_results(file_info, options) }
+  counts = file_info_list.each { |file_info| output_results(file_info, options) }
   output_total(counts, options) if files.size > 1
 end
 
@@ -62,11 +62,11 @@ def count_all(content)
 end
 
 def output_results(file_info, options)
-  outputs = file_info[:counts].keys.filter_map do |key|
-    file_info[:counts][key].to_s.rjust(8) if options[key] || options.values.none?
+  columns = file_info[:counts].filter_map do |key, value|
+    value.to_s.rjust(8) if options[key] || options.values.none?
   end
-  outputs << " #{file_info[:filename]}" if file_info[:filename]
-  puts outputs.join
+  columns << " #{file_info[:filename]}" if file_info[:filename]
+  puts columns.join
 end
 
 main
