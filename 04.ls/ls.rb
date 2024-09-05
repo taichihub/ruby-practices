@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'etc'
+
 COLUMNS = 3
 BLANK_SIZE = 8
 
@@ -43,16 +45,43 @@ def print_entries(formatted_entries, max_widths)
   end
 end
 
+def format_file_detail(entry)
+  stat = File.stat(entry)
+  ftype = case stat.ftype
+          when 'directory' then 'd'
+          when 'file' then '-'
+          else '?'
+          end
+  permissions = format('%o', stat.mode)[-3, 3].chars.map { |ch| ch.to_i.to_s(2).rjust(3, '0') }.join.tr('1', 'r').tr('0', '-')
+  nlink = stat.nlink
+  owner = Etc.getpwuid(stat.uid).name
+  group = Etc.getgrgid(stat.gid).name
+  size = stat.size
+  mtime = stat.mtime.strftime('%b %e %H:%M')
+  "#{ftype}#{permissions} #{nlink} #{owner} #{group} #{size} #{mtime} #{entry}"
+end
+
+def format_file_details(entries)
+  entries.map { |entry| format_file_detail(entry) }
+end
+
 def main
   include_hidden = ARGV.include?('-a')
   entries = fetch_entries(include_hidden:)
   reverse_order = ARGV.include?('-r')
+  display_detailed_file_information = ARGV.include?('-l')
   sorted_entries = dictionary_sort(entries)
   sorted_entries.reverse! if reverse_order
-  items_per_column = calculate_items_per_column(sorted_entries.size)
-  formatted_entries = slice_entries_for_display(sorted_entries, items_per_column)
-  max_widths = calculate_max_widths(formatted_entries)
-  print_entries(formatted_entries, max_widths)
+
+  if display_detailed_file_information
+    formatted_entries = format_file_details(sorted_entries)
+    puts formatted_entries
+  else
+    items_per_column = calculate_items_per_column(sorted_entries.size)
+    formatted_entries = slice_entries_for_display(sorted_entries, items_per_column)
+    max_widths = calculate_max_widths(formatted_entries)
+    print_entries(formatted_entries, max_widths)
+  end
 end
 
 main if __FILE__ == $PROGRAM_NAME
