@@ -46,7 +46,9 @@ end
 def main
   include_hidden = ARGV.include?('-a')
   entries = fetch_entries(include_hidden:)
+  reverse_order = ARGV.include?('-r')
   sorted_entries = dictionary_sort(entries)
+  sorted_entries.reverse! if reverse_order
   items_per_column = calculate_items_per_column(sorted_entries.size)
   formatted_entries = slice_entries_for_display(sorted_entries, items_per_column)
   max_widths = calculate_max_widths(formatted_entries)
