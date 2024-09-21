@@ -1,33 +1,37 @@
 # frozen_string_literal: true
 
 require_relative 'shot'
+require_relative 'constants'
 
 class Frame
-  attr_reader :shots, :index
+  attr_reader :shots
 
-  MAX_PINS = 10
-
-  def initialize(index)
+  def initialize
     @shots = []
-    @index = index
   end
 
   def add_shot(pins)
     @shots << Shot.new(pins)
   end
 
-  def calculate_frame_score(next_frame = nil, next_next_frame = nil)
-    return @shots.sum(&:pins) if @index == 9
-
-    if strike?
-      return score = MAX_PINS + bonus_for_strike(next_frame, next_next_frame)
-    elsif spare?
-      score = MAX_PINS + bonus_for_spare(next_frame)
+  def complete?(is_last_frame)
+    if is_last_frame
+      @shots.size == (strike? || spare? ? PER_FRAME_MAX_SHOTS + 1 : PER_FRAME_MAX_SHOTS)
     else
-      score = @shots.sum(&:pins)
+      strike? || @shots.size == PER_FRAME_MAX_SHOTS
     end
+  end
 
-    score
+  def calculate_frame_score(next_frame, next_next_frame, is_last_frame)
+    if is_last_frame
+      @shots.sum(&:pins)
+    elsif strike?
+      MAX_PINS + bonus_for_strike(next_frame, next_next_frame)
+    elsif spare?
+      MAX_PINS + bonus_for_spare(next_frame)
+    else
+      @shots.sum(&:pins)
+    end
   end
 
   def strike?
@@ -35,22 +39,22 @@ class Frame
   end
 
   def spare?
-    @shots.size == 2 && @shots.sum(&:pins) == MAX_PINS
+    @shots.size == PER_FRAME_MAX_SHOTS && @shots.sum(&:pins) == MAX_PINS
   end
 
   private
 
   def bonus_for_strike(next_frame, next_next_frame)
     if next_frame&.strike? && next_next_frame
-      next_frame.shots.first.pins + next_next_frame.shots.first.pins
+      MAX_PINS + next_next_frame.shots.first.pins
     elsif next_frame
       next_frame.shots.first(2).sum(&:pins)
     else
-      0
+      NO_FRAME
     end
   end
 
   def bonus_for_spare(next_frame)
-    next_frame&.shots&.first&.pins || 0
+    next_frame&.shots&.first&.pins || NO_FRAME
   end
 end
