@@ -6,23 +6,13 @@ require_relative 'constants'
 class Frame
   attr_reader :shots
 
-  def initialize
-    @shots = []
+  NO_FRAME = 0
+
+  def initialize(pins)
+    @shots = pins.map { |pin| Shot.new(pin) }
   end
 
-  def add_shot(pins)
-    @shots << Shot.new(pins)
-  end
-
-  def complete?(is_last_frame)
-    if is_last_frame
-      @shots.size == (strike? || spare? ? PER_FRAME_MAX_SHOTS + 1 : PER_FRAME_MAX_SHOTS)
-    else
-      strike? || @shots.size == PER_FRAME_MAX_SHOTS
-    end
-  end
-
-  def calculate_frame_score(next_frame, next_next_frame, is_last_frame)
+  def score(next_frame, next_next_frame, is_last_frame)
     if is_last_frame
       @shots.sum(&:pins)
     elsif strike?

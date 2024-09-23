@@ -3,7 +3,9 @@
 class Shot
   attr_reader :pins
 
-  def initialize(pins)
-    @pins = pins
+  STRIKE_MARK = 'X'
+
+  def initialize(score)
+    @pins = score == STRIKE_MARK ? MAX_PINS : score.to_i
   end
 end

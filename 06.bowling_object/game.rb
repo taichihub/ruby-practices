@@ -4,46 +4,40 @@ require_relative 'frame'
 require_relative 'constants'
 
 class Game
-  attr_reader :frames
+  FRAMES = 10
 
-  def initialize
+  def initialize(pins)
     @frames = []
+    frames_data = split_pins_into_frames(pins)
+    frames_data.each { |frame_pins| @frames << Frame.new(frame_pins) }
   end
 
-  def record_shots(pins)
-    pins.each do |pin|
-      current_frame.add_shot(pin)
-      create_new_frame_if_necessary
-    end
-  end
-
-  def calculate_game_score
+  def score
     @frames.each_with_index.sum do |frame, index|
-      if index + 1 == FRAMES
-        frame.calculate_frame_score(nil, nil, true)
+      if index == FRAMES - 1
+        frame.score(nil, nil, true)
       else
-        frame.calculate_frame_score(@frames[index + 1], @frames[index + 2], false)
+        frame.score(@frames[index + 1], @frames[index + 2], false)
       end
     end
   end
 
   private
 
-  def current_frame
-    @frames.last || create_new_frame
-  end
+  def split_pins_into_frames(pins)
+    frames = []
+    frame = []
 
-  def create_new_frame
-    new_frame = Frame.new
-    @frames << new_frame
-    new_frame
-  end
+    pins.each do |pin|
+      frame << pin
+      if frames.size < FRAMES - 1 && (frame.sum == MAX_PINS || frame.size == PER_FRAME_MAX_SHOTS)
+        frames << frame
+        frame = []
+      elsif frames.size == FRAMES - 1 && frame.size <= 3
+        frames << frame
+      end
+    end
 
-  def create_new_frame_if_necessary
-    create_new_frame if current_frame.complete?(last_frame?) && !last_frame?
-  end
-
-  def last_frame?
-    @frames.size == FRAMES
+    frames
   end
 end
