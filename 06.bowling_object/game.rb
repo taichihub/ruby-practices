@@ -4,21 +4,15 @@ require_relative 'frame'
 require_relative 'constants'
 
 class Game
-  FRAMES = 10
-
   def initialize(pins)
     @frames = []
     frames_data = split_pins_into_frames(pins)
-    frames_data.each { |frame_pins| @frames << Frame.new(frame_pins) }
+    frames_data.each_with_index.map { |frame_pins, index| @frames << Frame.new(frame_pins, index) }
   end
 
   def score
     @frames.each_with_index.sum do |frame, index|
-      if index == FRAMES - 1
-        frame.score(nil, nil, true)
-      else
-        frame.score(@frames[index + 1], @frames[index + 2], false)
-      end
+      frame.score(*@frames[(index + 1)..(index + 2)])
     end
   end
 
@@ -30,14 +24,21 @@ class Game
 
     pins.each do |pin|
       frame << pin
-      if frames.size < FRAMES - 1 && (frame.sum == MAX_PINS || frame.size == PER_FRAME_MAX_SHOTS)
+      if frame_complete?(frames, frame)
         frames << frame
         frame = []
-      elsif frames.size == FRAMES - 1 && frame.size <= 3
-        frames << frame
       end
     end
 
+    frames << frame if !frame.empty?
     frames
+  end
+
+  def frame_complete?(frames, frame)
+    if frames.size == FRAMES - 1
+      frame.size == PER_FRAME_MAX_SHOTS + 1
+    else
+      frame.sum(&:pins) == MAX_PINS || frame.size == PER_FRAME_MAX_SHOTS
+    end
   end
 end

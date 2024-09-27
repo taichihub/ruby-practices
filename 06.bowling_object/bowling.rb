@@ -1,12 +1,17 @@
 # frozen_string_literal: true
 
 require_relative 'game'
+require_relative 'shot'
 
 def main
-  input_scores = ARGV[0].split(',').map do |score|
-    Shot.new(score).pins
+  input = ARGV[0]
+  pin_marks = input.split(',')
+
+  shots = pin_marks.map do |mark|
+    Shot.new(mark)
   end
-  game = Game.new(input_scores)
+
+  game = Game.new(shots)
   total_score = game.score
   puts total_score
 end

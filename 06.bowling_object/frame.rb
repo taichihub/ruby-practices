@@ -8,19 +8,21 @@ class Frame
 
   NO_FRAME = 0
 
-  def initialize(pins)
-    @shots = pins.map { |pin| Shot.new(pin) }
+  def initialize(shots, index)
+    @shots = shots
+    @index = index
   end
 
-  def score(next_frame, next_next_frame, is_last_frame)
-    if is_last_frame
-      @shots.sum(&:pins)
+  def score(next_frame = nil, next_next_frame = nil)
+    total_pins = @shots.sum(&:pins)
+    if last_frame?
+      total_pins
     elsif strike?
-      MAX_PINS + bonus_for_strike(next_frame, next_next_frame)
+      total_pins + bonus_for_strike(next_frame, next_next_frame)
     elsif spare?
-      MAX_PINS + bonus_for_spare(next_frame)
+      total_pins + bonus_for_spare(next_frame)
     else
-      @shots.sum(&:pins)
+      total_pins
     end
   end
 
@@ -34,7 +36,11 @@ class Frame
 
   private
 
-  def bonus_for_strike(next_frame, next_next_frame)
+  def last_frame?
+    @index == FRAMES - 1
+  end
+
+  def bonus_for_strike(next_frame = nil, next_next_frame = nil)
     if next_frame&.strike? && next_next_frame
       MAX_PINS + next_next_frame.shots.first.pins
     elsif next_frame
@@ -44,7 +50,7 @@ class Frame
     end
   end
 
-  def bonus_for_spare(next_frame)
+  def bonus_for_spare(next_frame = nil)
     next_frame&.shots&.first&.pins || NO_FRAME
   end
 end
