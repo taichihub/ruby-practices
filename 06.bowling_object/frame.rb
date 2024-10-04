@@ -15,15 +15,9 @@ class Frame
 
   def score(next_frame = nil, next_next_frame = nil)
     total_pins = @shots.sum(&:pins)
-    if last_frame?
-      total_pins
-    elsif strike?
-      total_pins + bonus_for_strike(next_frame, next_next_frame)
-    elsif spare?
-      total_pins + bonus_for_spare(next_frame)
-    else
-      total_pins
-    end
+    total_pins += bonus_for_strike(next_frame, next_next_frame) if strike?
+    total_pins += bonus_for_spare(next_frame) if spare?
+    total_pins
   end
 
   def strike?
@@ -35,10 +29,6 @@ class Frame
   end
 
   private
-
-  def last_frame?
-    @index == FRAMES - 1
-  end
 
   def bonus_for_strike(next_frame = nil, next_next_frame = nil)
     if next_frame&.strike? && next_next_frame
