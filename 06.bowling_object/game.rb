@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 require_relative 'frame'
-require_relative 'constants'
 
 class Game
+  FRAMES = 10
+
   def initialize(pins)
     @frames = []
     frames_data = split_pins_into_frames(pins)
@@ -24,21 +25,13 @@ class Game
 
     pins.each do |pin|
       frame << pin
-      if frame_complete?(frames, frame)
+      if frames.size != FRAMES - 1 && (frame.sum(&:pins) == MAX_PINS || frame.size == PER_FRAME_MAX_SHOTS)
         frames << frame
         frame = []
       end
     end
 
-    frames << frame if !frame.empty?
+    frames << frame unless frame.empty?
     frames
-  end
-
-  def frame_complete?(frames, frame)
-    if frames.size == FRAMES - 1
-      frame.size == PER_FRAME_MAX_SHOTS + 1
-    else
-      frame.sum(&:pins) == MAX_PINS || frame.size == PER_FRAME_MAX_SHOTS
-    end
   end
 end
