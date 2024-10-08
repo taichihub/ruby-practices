@@ -2,6 +2,7 @@
 
 require_relative 'game'
 require_relative 'shot'
+require_relative 'constants'
 
 def main
   input = ARGV[0]
