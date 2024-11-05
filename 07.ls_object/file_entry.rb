@@ -17,8 +17,16 @@ class FileEntry
     owner = Etc.getpwuid(@stat.uid).name
     group = Etc.getgrgid(@stat.gid).name
     size = @stat.size
-    mtime = @stat.mtime.strftime('%b %e %H:%M')
-    "#{ftype}#{permissions} #{nlink} #{owner} #{group} #{size} #{mtime} #{@name}"
+    mtime = @stat.mtime.strftime('%m %e %H:%M')
+    "#{ftype}#{permissions}  #{nlink} #{owner}  #{group} #{size} #{mtime} #{@name}"
+  end
+
+  def blocks
+    @stat.blocks
+  end
+
+  def size
+    @stat.size
   end
 
   private

@@ -1,45 +1,41 @@
 # frozen_string_literal: true
 
 class EntryFormatter
-  COLUMNS = 3
-  BLANK_SIZE = 8
-
-  def initialize(entries)
-    @entries = entries.map(&:name)
+  def initialize(entries, size_width)
+    @entries = entries
+    @size_width = size_width
   end
 
-  def self.format(entries, detailed_info)
+  def self.format(entries, detailed_info, size_width)
     if detailed_info
-      entries.map(&:detailed_info).join("\n")
+      entries.map do |entry|
+        entry.detailed_info.gsub(entry.size.to_s, entry.size.to_s.rjust(size_width))
+      end.join("\n")
     else
-      new(entries).format_grid
+      new(entries, size_width).format_grid
     end
   end
 
   def format_grid
+    max_entry_width = @entries.map(&:name).map(&:length).max + 5
     items_per_column = calculate_items_per_column(@entries.size)
-    formatted_entries = slice_entries_for_display(@entries, items_per_column)
-    max_widths = calculate_max_widths(formatted_entries)
-    build_grid(formatted_entries, max_widths)
+    formatted_entries = slice_entries_for_display(@entries.map(&:name), items_per_column)
+    build_grid(formatted_entries, max_entry_width)
   end
 
   private
 
   def calculate_items_per_column(items)
-    (items.to_f / COLUMNS).ceil
+    (items.to_f / 3).ceil
   end
 
   def slice_entries_for_display(entries, items_per_column)
     entries.each_slice(items_per_column).to_a
   end
 
-  def calculate_max_widths(formatted_entries)
-    formatted_entries.map { |col| col.map(&:length).max }
-  end
-
-  def build_grid(formatted_entries, max_widths)
+  def build_grid(formatted_entries, max_entry_width)
     safe_transpose(formatted_entries).map do |row|
-      row.each_with_index.map { |entry, index| (entry || '').ljust(max_widths[index] + BLANK_SIZE) }.join
+      row.map { |entry| (entry || '').ljust(max_entry_width) }.join
     end.join("\n")
   end
 
