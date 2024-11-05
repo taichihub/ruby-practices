@@ -30,11 +30,11 @@ class DirectoryLister
   end
 
   def total_blocks(entries)
-    entries.sum { |entry| entry.blocks }
+    entries.sum(&:blocks)
   end
 
   def calculate_max_size_length(entries)
-    max_size = entries.map { |entry| entry.size }.max
+    max_size = entries.map(&:size).max
     max_size.to_s.length + 1
   end
 end
