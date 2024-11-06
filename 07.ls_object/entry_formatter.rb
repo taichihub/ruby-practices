@@ -8,9 +8,7 @@ class EntryFormatter
 
   def self.format(entries, detailed_info, size_width)
     if detailed_info
-      entries.map do |entry|
-        entry.detailed_info.gsub(entry.size.to_s, entry.size.to_s.rjust(size_width))
-      end.join("\n")
+      entries.map { |entry| entry.detailed_info(size_width) }.join("\n")
     else
       new(entries, size_width).format_grid
     end
