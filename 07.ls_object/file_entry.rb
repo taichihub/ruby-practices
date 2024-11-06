@@ -22,7 +22,6 @@ class FileEntry
   end
 
   def blocks
-
     @stat.blocks
   end
 
@@ -49,5 +48,5 @@ class FileEntry
     six_months_ago = mtime < Time.now - (6 * 30 * 24 * 60 * 60)
     date_format = six_months_ago ? "#{month_format}  %Y" : "#{month_format} %H:%M"
     mtime.strftime(date_format)
-  end  
+  end
 end
