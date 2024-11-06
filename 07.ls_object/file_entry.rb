@@ -12,21 +12,13 @@ class FileEntry
 
   def detailed_info(size_width)
     ftype = file_type
-    permissions = formatted_permissions
+    permissions = format('%o', @stat.mode)[-3, 3].chars.map { |ch| ch.to_i.to_s(2).rjust(3, '0') }.join.tr('1', 'r').tr('0', '-')
     nlink = @stat.nlink
     owner = Etc.getpwuid(@stat.uid).name
     group = Etc.getgrgid(@stat.gid).name
     size = @stat.size.to_s.rjust(size_width)
     mtime = format_mtime(@stat.mtime)
     "#{ftype}#{permissions}  #{nlink} #{owner}  #{group} #{size} #{mtime} #{@name}"
-  end
-
-  def blocks
-    @stat.blocks
-  end
-
-  def size
-    @stat.size
   end
 
   private
@@ -37,10 +29,6 @@ class FileEntry
     when 'file' then '-'
     else '?'
     end
-  end
-
-  def formatted_permissions
-    format('%o', @stat.mode)[-3, 3].chars.map { |ch| ch.to_i.to_s(2).rjust(3, '0') }.join.tr('1', 'r').tr('0', '-')
   end
 
   def format_mtime(mtime)
