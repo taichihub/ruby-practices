@@ -17,7 +17,7 @@ class FileEntry
     owner = Etc.getpwuid(@stat.uid).name
     group = Etc.getgrgid(@stat.gid).name
     size = @stat.size.to_s.rjust(size_width)
-    mtime = format_mtime(@stat.mtime)
+    mtime = format_mtime
     "#{ftype}#{permissions}  #{nlink} #{owner}  #{group} #{size} #{mtime} #{@name}"
   end
 
@@ -31,10 +31,10 @@ class FileEntry
     end
   end
 
-  def format_mtime(mtime)
-    month_format = mtime.strftime('%-m').to_i < 10 ? ' %-m %e' : '%m %e'
-    six_months_ago = mtime < Time.now - (6 * 30 * 24 * 60 * 60)
+  def format_mtime
+    month_format = @stat.mtime.strftime('%-m').to_i < 10 ? ' %-m %e' : '%m %e'
+    six_months_ago = @stat.mtime < Time.now - (6 * 30 * 24 * 60 * 60)
     date_format = six_months_ago ? "#{month_format}  %Y" : "#{month_format} %H:%M"
-    mtime.strftime(date_format)
+    @stat.mtime.strftime(date_format)
   end
 end
