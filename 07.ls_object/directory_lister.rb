@@ -10,8 +10,8 @@ class DirectoryLister
 
   def list
     sorted_entries = sort_entries(fetch_entries)
-    max_size_length = sorted_entries.map { |entry| entry.instance_variable_get(:@stat).size }.max.to_s.length + 1
-    puts "total #{sorted_entries.sum { |entry| entry.instance_variable_get(:@stat).blocks }}" if @options.detailed_info
+    max_size_length = sorted_entries.map { |entry| entry.stat.size }.max.to_s.length + 1
+    puts "total #{sorted_entries.sum { |entry| entry.stat.blocks }}" if @options.detailed_info
     puts EntryFormatter.format(sorted_entries, @options.detailed_info, max_size_length)
   end
 

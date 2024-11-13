@@ -3,7 +3,7 @@
 require 'etc'
 
 class FileEntry
-  attr_reader :name
+  attr_reader :name, :stat
 
   def initialize(name)
     @name = name
