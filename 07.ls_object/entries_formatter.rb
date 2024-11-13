@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class EntryFormatter
+class EntriesFormatter
   def initialize(entries, size_width)
     @entries = entries
     @size_width = size_width

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'file_entry'
-require_relative 'entry_formatter'
+require_relative 'entries_formatter'
 
 class DirectoryLister
   def initialize(options)
@@ -12,7 +12,7 @@ class DirectoryLister
     sorted_entries = sort_entries(fetch_entries)
     max_size_length = sorted_entries.map { |entry| entry.stat.size }.max.to_s.length + 1
     puts "total #{sorted_entries.sum { |entry| entry.stat.blocks }}" if @options.detailed_info
-    puts EntryFormatter.format(sorted_entries, @options.detailed_info, max_size_length)
+    puts EntriesFormatter.format(sorted_entries, @options.detailed_info, max_size_length)
   end
 
   private
