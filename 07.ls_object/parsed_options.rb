@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class OptionParser
+class ParsedOptions
   attr_reader :include_hidden, :reverse_order, :detailed_info
 
   def initialize(args)
