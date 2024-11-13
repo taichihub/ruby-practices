@@ -19,7 +19,7 @@ class DirectoryLister
 
   def fetch_entries
     pattern = @options.include_hidden ? ['*', '.*'] : '*'
-    Dir.glob(pattern).reject { |entry| ['.'].include?(entry) }.map { |name| FileEntry.new(name) }
+    Dir.glob(pattern).reject { |entry| ['..'].include?(entry) }.map { |name| FileEntry.new(name) }
   end
 
   def sort_entries(entries)
