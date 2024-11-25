@@ -6,20 +6,23 @@ require_relative 'entries_formatter'
 class DirectoryLister
   def initialize(options)
     @options = options
+    @cached_entries = nil
   end
 
   def list
     sorted_entries = sort_entries(fetch_entries)
-    max_size_length = sorted_entries.map { |entry| entry.stat.size }.max.to_s.length + 1
-    puts "total #{sorted_entries.sum { |entry| entry.stat.blocks }}" if @options.detailed_info
+    max_size_length = sorted_entries.map(&:size).max.to_s.length + 1
+    puts "total #{sorted_entries.sum(&:blocks)}" if @options.detailed_info
     puts EntriesFormatter.format(sorted_entries, @options.detailed_info, max_size_length)
   end
 
   private
 
   def fetch_entries
+    return @cached_entries if @cached_entries
+
     pattern = @options.include_hidden ? ['*', '.*'] : '*'
-    Dir.glob(pattern).reject { |entry| ['..'].include?(entry) }.map { |name| FileEntry.new(name) }
+    @cached_entries = Dir.glob(pattern).reject { |entry| ['..'].include?(entry) }.map { |name| FileEntry.new(name) }
   end
 
   def sort_entries(entries)
